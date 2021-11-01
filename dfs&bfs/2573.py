@@ -1,24 +1,26 @@
 import sys
-
-def findIce(x,y):
+import copy
+def isAllIce(): #전체 노드가 0인지 확인
+    for i in range(N):
+        for j in range(M):
+            if node[i][j] != 0:
+                return False
+    return True
+def findIce(x,y): #상하좌우로 0이 몇개인지 확인
     dx = [0,0,-1,1]
     dy = [-1,1,0,0]
-    ice = 0
+    num = 0
     for i in range(4):
         nx = x+ dx[i]
         ny = y+ dy[i]
-        if nx < 0 or ny <0 or nx>=N or ny>=M:
-            continue
-        if node[nx][ny] <= 0 :
-            ice += 1
-    return ice
-def bfs(x, y, check):
+        if 0 <= nx < N and 0<= ny< M and ice[nx][ny] == 0 :
+            num +=1
+    return num
+def bfs(x, y):
     queue = [(x,y)]
     dx = [0,0,-1,1]
     dy = [-1,1,0,0]
-    ice = findIce(x, y)
-    ice_list = []
-    ice_list.append([x,y,ice])
+    check = [[0]*M for _ in range(N)]
     check[x][y] = 1
     while queue:
         ix, iy = queue.pop(0)
@@ -27,38 +29,39 @@ def bfs(x, y, check):
             ny = iy + dy[i]
             if nx < 0 or ny <0 or nx>=M or ny>=M:
                 continue
-            if node[nx][ny] > 0 and check[nx][ny] == 0:
+            if land[nx][ny] != 0 and check[nx][ny] == 0:
+                land[nx][ny] = 0
                 check[nx][ny] = 1
                 queue.append((nx,ny))
-                ice = findIce(nx,ny)
-                ice_list.append([nx,ny,ice])
-    for l1, l2, l3 in ice_list:
-        node[l1][l2] -= l3
+ 
 if __name__ == '__main__':
     N, M = list(map(int, sys.stdin.readline().split()))
     node = []
-    clock = 0
+    year = 1
     for _ in range(N):
         node.append(list(map(int, sys.stdin.readline().split())))
-    
     while True:
-        check = [[0]*M for _ in range(N)]
-        num = 0
-        
-        for i in range(N):
-            for j in range(M):
-                if node[i][j] > 0 and check[i][j] == 0:
-                    bfs(i, j, check) 
-                    num += 1
-                    if num >= 2 or num == 0:
-                        break
-        clock += 1
-        if num == 0:
+        if isAllIce():
             print(0)
             break
-        if num >= 2:
-            print(clock-1)
+        #ice : 이미 녹은 얼음에 영향을 주면 안되기 때문에 값을 저장
+        ice = copy.deepcopy(node)
+        for i in range(N):
+            for j in range(M):
+                if ice[i][j] != 0 :
+                    num = findIce(i,j)
+                    node[i][j] = max(ice[i][j] - num, 0)
+        land = copy.deepcopy(node)
+        for i in range(N):
+            for j in range(M):
+                if land[i][j] != 0 :
+                    land[i][j] = 0
+                    bfs(i, j)
+                    year += 1
+        if year > 1:
+            print(year)
             break
+        year += 1
 
         
 
